@@ -96,7 +96,7 @@ export function creerServeur({ mecpow, client = null, maintenant = () => new Dat
         if (route === 'GET /projets' && segments.length === 2) {
           const projets = await listerProjets(mecpow);
           return json(res, 200, projets.map(p => ({
-            nom: p.nom, dossier: p.dossier, categorie: p.categorie ?? null,
+            nom: p.nom, dossier: p.dossier, categorie: p.categorie ?? null, cree: p.cree ?? null,
             declinaisons: (p.declinaisons ?? []).map(d => ({
               nom: d.nom, dossier: d.dossier,
               pieces: (d.feuilles ?? []).reduce((s, f) => s + (f.pieces ?? 0), 0),

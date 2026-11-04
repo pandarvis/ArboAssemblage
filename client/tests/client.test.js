@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { marques, recapitulatif, cleDe, memoire } from '../src/lib/marques.js';
-import { cadrer, zoomer, deplacer, versDessin, estUnAppui, viser, ZOOM_MIN, ZOOM_MAX } from '../src/lib/vue.js';
+import { cadrer, zoomer, deplacer, versDessin, estUnAppui, viser, geste, ancrer, ZOOM_MIN, ZOOM_MAX } from '../src/lib/vue.js';
 
 const modele = {
   dossier: 'Damier', declinaison: '200 mm de large', taille: [200, 120],
@@ -95,4 +95,34 @@ test('viser une pièce l’amène au centre de l’écran', () => {
   assert.ok(Math.abs(centre.x - 34) < 1e-6, `centre en x : ${centre.x}`);
   assert.ok(Math.abs(centre.y - 90) < 1e-6, `centre en y : ${centre.y}`);
   assert.ok(vue.k >= ZOOM_MIN && vue.k <= ZOOM_MAX);
+});
+
+test('le geste ne saute pas quand un doigt arrive ou s’en va', () => {
+  const origine = { x: 0, y: 0 };
+  let vue = { x: 0, y: 0, k: 2 };
+
+  // un doigt qui glisse de 40 px vers la droite
+  let doigts = [{ x: 100, y: 200 }];
+  let ancre = ancrer(vue, doigts);
+  vue = geste(ancre, [{ x: 140, y: 200 }], origine);
+  assert.deepEqual(vue, { x: 40, y: 0, k: 2 });
+
+  // un second doigt se pose : on réancre, et sans bouger rien ne change
+  doigts = [{ x: 140, y: 200 }, { x: 240, y: 200 }];
+  ancre = ancrer(vue, doigts);
+  assert.deepEqual(geste(ancre, doigts, origine), vue, 'poser un doigt ne déplace pas le motif');
+
+  // les doigts s'écartent du double : le zoom double, le point entre les doigts ne bouge pas
+  const ecartes = [{ x: 90, y: 200 }, { x: 290, y: 200 }];
+  const zoomee = geste(ancre, ecartes, origine);
+  assert.ok(Math.abs(zoomee.k - 4) < 1e-9, `k = ${zoomee.k}`);
+  const avant = versDessin(vue, { x: 190, y: 200 });
+  const apres = versDessin(zoomee, { x: 190, y: 200 });
+  assert.ok(Math.abs(avant.x - apres.x) < 1e-9 && Math.abs(avant.y - apres.y) < 1e-9);
+
+  // un doigt se lève : on réancre sur celui qui reste, et là encore rien ne saute
+  const reste = [{ x: 90, y: 200 }];
+  const ancre2 = ancrer(zoomee, reste);
+  assert.deepEqual(geste(ancre2, reste, origine), zoomee, 'lever un doigt ne déplace pas le motif');
+  assert.deepEqual(geste(ancre2, [{ x: 100, y: 210 }], origine), { ...zoomee, x: zoomee.x + 10, y: zoomee.y + 10 });
 });

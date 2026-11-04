@@ -1,7 +1,7 @@
 // L'appli d'assemblage : on choisit un motif, on le regarde de près, on sait quelle essence est où,
 // et on marque les pièces à redécouper. Le serveur de l'atelier fait le reste.
 import { marques, recapitulatif } from './lib/marques.js';
-import { cadrer, deplacer, zoomer, estUnAppui, ecartement, milieu } from './lib/vue.js';
+import { cadrer, estUnAppui, geste, ancrer } from './lib/vue.js';
 
 const $ = s => document.querySelector(s);
 const NS = 'http://www.w3.org/2000/svg';
@@ -15,6 +15,7 @@ const stockage = (() => {
   }
 })();
 
+const CLE_DERNIER = 'arbo:dernier';
 let modele = null, carnet = null, chemins = new Map();
 let vue = { x: 0, y: 0, k: 1 }, choisie = null, essenceChoisie = null;
 
@@ -39,7 +40,16 @@ async function api(chemin, init) {
 }
 
 // ---------- le choix du motif
-async function accueil() {
+/** Le dernier motif ouvert : au lancement suivant, c'est celui-là qu'on veut, pas une liste. */
+function dernier(valeur) {
+  try {
+    if (valeur === undefined) return JSON.parse(stockage?.getItem(CLE_DERNIER) ?? 'null');
+    stockage?.setItem(CLE_DERNIER, JSON.stringify(valeur));
+  } catch { /* sans mémoire, on repassera par la liste */ }
+  return valeur ?? null;
+}
+
+async function accueil({ direct = false } = {}) {
   montrer('accueil');
   try {
     const projets = await api('/api/projets');
@@ -48,13 +58,24 @@ async function accueil() {
       $('#projets').innerHTML = '<p class="doux">Aucun projet préparé pour l’instant.</p>';
       return;
     }
-    $('#projets').innerHTML = projets.flatMap(p => (p.declinaisons ?? []).map(d => `
+    const vu = dernier();
+    const lignes = projets.flatMap(p => (p.declinaisons ?? []).map(d => ({ p, d })));
+    const rang = ({ p, d }) => (vu && p.dossier === vu.projet && d.nom === vu.declinaison ? 0 : 1);
+    lignes.sort((a, b) => rang(a) - rang(b));
+    $('#projets').innerHTML = lignes.map(({ p, d }) => `
       <button class="ligne" data-projet="${attr(p.dossier)}" data-declinaison="${attr(d.nom)}">
-        <span><b>${texte(p.nom)}</b><small>${texte(d.nom)}</small></span>
-        <span class="fin">${d.pieces || '?'} pièces</span>
-      </button>`)).join('');
+        <span><b>${texte(p.nom)}</b><small>${texte(d.nom)}${p.cree ? ` · préparé le ${date(p.cree)}` : ''}</small></span>
+        <span class="fin">${rang({ p, d }) === 0 ? 'en cours<br>' : ''}${d.pieces || '?'} pièces</span>
+      </button>`).join('');
     for (const l of $('#projets').querySelectorAll('.ligne')) {
       l.addEventListener('click', () => ouvrir(l.dataset.projet, l.dataset.declinaison));
+    }
+    // au lancement, on reprend là où on s'était arrêté — les motifs déjà assemblés n'intéressent plus
+    if (direct) {
+      const d = dernier();
+      const connu = d && projets.some(p => p.dossier === d.projet && (p.declinaisons ?? []).some(x => x.nom === d.declinaison));
+      const choix = connu ? d : { projet: projets[0].dossier, declinaison: projets[0].declinaisons[0]?.nom };
+      if (choix.projet && choix.declinaison) return ouvrir(choix.projet, choix.declinaison);
     }
   } catch (e) {
     $('#projets').innerHTML = '';
@@ -65,6 +86,7 @@ async function accueil() {
 
 const texte = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 const attr = s => texte(s).replace(/"/g, '&quot;');
+const date = iso => { try { return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }); } catch { return ''; } };
 
 // ---------- le motif
 async function ouvrir(dossier, declinaison) {
@@ -77,6 +99,7 @@ async function ouvrir(dossier, declinaison) {
   }
   $('#message').hidden = true;
   carnet = marques(modele.dossier, modele.declinaison, stockage ?? undefined);
+  dernier({ projet: modele.dossier, declinaison: modele.declinaison });
   $('#titre-projet').textContent = modele.projet;
   $('#titre-declinaison').textContent = `${modele.declinaison} · ${modele.pieces.length} pièces`;
   dessiner();
@@ -136,37 +159,39 @@ function peindre() {
 }
 
 // ---------- zoom et déplacement, au doigt
+// Tout se calcule depuis l'ancre, relevée dès qu'un doigt se pose ou se lève : rien ne saute à ce moment-là.
 const doigts = new Map();
-let depart = null, bouge = false;
+let ancre = null, premier = null, bouge = false;
+
+const positions = () => [...doigts.values()];
+const reancrer = () => { ancre = modele ? ancrer(vue, positions()) : null; };
 
 $('#plan').addEventListener('pointerdown', ev => {
   doigts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
-  if (doigts.size === 1) { depart = { x: ev.clientX, y: ev.clientY, t: Date.now(), vue: { ...vue } }; bouge = false; }
+  if (doigts.size === 1) { premier = { x: ev.clientX, y: ev.clientY, t: Date.now() }; bouge = false; }
+  reancrer();
 });
+
 $('#plan').addEventListener('pointermove', ev => {
-  if (!doigts.has(ev.pointerId) || !modele) return;
-  const avant = [...doigts.values()];
+  if (!doigts.has(ev.pointerId) || !modele || !ancre) return;
   doigts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+  const liste = positions();
+  if (liste.length !== ancre.doigts) { reancrer(); return; }   // un doigt est arrivé entre-temps
   const { rect } = ecran();
-  if (doigts.size === 1) {
-    vue = deplacer(depart.vue, ev.clientX - depart.x, ev.clientY - depart.y);
-    if (Math.hypot(ev.clientX - depart.x, ev.clientY - depart.y) > 8) bouge = true;
-  } else if (doigts.size === 2) {
-    bouge = true;
-    const apres = [...doigts.values()];
-    const facteur = ecartement(apres[0], apres[1]) / (ecartement(avant[0], avant[1]) || 1);
-    const centre = milieu(apres[0], apres[1]);
-    vue = zoomer(vue, facteur, { x: centre.x - rect.left, y: centre.y - rect.top });
-  }
+  vue = geste(ancre, liste, { x: rect.left, y: rect.top });
+  if (liste.length > 1 || Math.hypot(ev.clientX - premier.x, ev.clientY - premier.y) > 8) bouge = true;
   appliquer();
 });
+
 const lever = ev => {
+  const restants = doigts.size - (doigts.has(ev.pointerId) ? 1 : 0);
   doigts.delete(ev.pointerId);
-  if (!doigts.size && depart && !bouge && estUnAppui(depart, { x: ev.clientX, y: ev.clientY, t: Date.now() })) toucher(ev);
-  if (!doigts.size) depart = null;
+  if (!restants && premier && !bouge && estUnAppui(premier, { x: ev.clientX, y: ev.clientY, t: Date.now() })) toucher(ev);
+  if (restants) reancrer();                                    // il reste des doigts : on repart de leur position
+  else { ancre = null; premier = null; }
 };
 $('#plan').addEventListener('pointerup', lever);
-$('#plan').addEventListener('pointercancel', ev => doigts.delete(ev.pointerId));
+$('#plan').addEventListener('pointercancel', ev => { doigts.delete(ev.pointerId); if (doigts.size) reancrer(); else ancre = null; });
 addEventListener('resize', () => { if (modele) cadrerTout(); });
 
 // ---------- toucher une pièce
@@ -203,7 +228,7 @@ $('#marquer').addEventListener('click', () => {
   majMarquer();
   peindre();
 });
-$('#retour').addEventListener('click', () => { modele = null; accueil(); });
+$('#retour').addEventListener('click', () => { modele = null; accueil(); });   // le retour, lui, montre la liste
 
 // ---------- les essences, et l'envoi à l'atelier
 function remplirEssences() {
@@ -276,4 +301,5 @@ $('#ouvrir-essences').addEventListener('click', () => { remplirEssences(); montr
 $('#compteur').addEventListener('click', () => { remplirEssences(); montrer('essences'); });
 $('#fermer-essences').addEventListener('click', () => montrer('motif'));
 
-accueil();
+// au lancement, on reprend le dernier motif ; le bouton « retour » montre la liste
+accueil({ direct: true });

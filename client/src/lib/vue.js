@@ -54,3 +54,30 @@ export function viser(piece, ecran, k = null) {
     y: ecran.hauteur / 2 - ((y0 + y1) / 2) * borne,
   };
 }
+
+/**
+ * Un geste à deux doigts, calculé d'un bloc depuis son ancre : le zoom et le déplacement se déduisent
+ * de l'écart et du centre des doigts au moment où on les a posés. Rien ne s'accumule, donc rien ne saute
+ * quand un doigt arrive ou s'en va — il suffit alors de reprendre l'ancre.
+ *
+ * `ancre` : { vue, centre, ecart } relevé au dernier changement de doigts.
+ * `doigts` : les positions courantes, en pixels écran. `origine` : le coin du plan à l'écran.
+ */
+export function geste(ancre, doigts, origine = { x: 0, y: 0 }) {
+  if (!ancre || !doigts.length) return ancre?.vue ?? { x: 0, y: 0, k: 1 };
+  const centre = doigts.length >= 2 ? milieu(doigts[0], doigts[1]) : doigts[0];
+  let vue = ancre.vue;
+  if (doigts.length >= 2 && ancre.ecart > 0) {
+    const facteur = ecartement(doigts[0], doigts[1]) / ancre.ecart;
+    vue = zoomer(vue, facteur, { x: ancre.centre.x - origine.x, y: ancre.centre.y - origine.y });
+  }
+  return deplacer(vue, centre.x - ancre.centre.x, centre.y - ancre.centre.y);
+}
+
+/** L'ancre à relever chaque fois que le nombre de doigts change. */
+export const ancrer = (vue, doigts) => ({
+  vue: { ...vue },
+  centre: doigts.length >= 2 ? milieu(doigts[0], doigts[1]) : (doigts[0] ?? { x: 0, y: 0 }),
+  ecart: doigts.length >= 2 ? ecartement(doigts[0], doigts[1]) : 0,
+  doigts: doigts.length,
+});
