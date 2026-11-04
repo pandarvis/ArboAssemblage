@@ -1,0 +1,10 @@
+{
+  "name": "arboassemblage-noyau",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lecture de l'atelier, modèle d'assemblage et redécoupe des pièces manquantes.",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\""
+  }
+}

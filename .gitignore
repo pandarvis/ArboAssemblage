@@ -1,0 +1,6 @@
+node_modules/
+*.log
+
+# ce que l'atelier d'exemple produit quand on fait tourner l'appli pour de vrai
+noyau/exemple-atelier/**/*.lbrn2
+noyau/exemple-atelier/**/_sauvegardes/

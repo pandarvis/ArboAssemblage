@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "assemblage",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["serveur/src/index.js", "--port=8461", "--mecpow=R:/Documents/ArboAssemblage/noyau/exemple-atelier"],
+      "port": 8461
+    }
+  ]
+}

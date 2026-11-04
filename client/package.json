@@ -1,0 +1,10 @@
+{
+  "name": "arboassemblage-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "L'appli d'assemblage : le motif en main, les essences, les pièces à redécouper.",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\""
+  }
+}

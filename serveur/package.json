@@ -1,0 +1,11 @@
+{
+  "name": "arboassemblage-serveur",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "L'API locale : elle lit l'atelier et écrit les fichiers de redécoupe.",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test \"tests/*.test.js\""
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ArboAssemblage",
+  "short_name": "Assemblage",
+  "description": "Le motif de marqueterie en main pendant l'assemblage : les essences, et les pièces à redécouper.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#16171a",
+  "theme_color": "#16171a",
+  "icons": [{ "src": "icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

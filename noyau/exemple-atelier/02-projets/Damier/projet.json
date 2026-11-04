@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "nom": "Damier",
+  "cree": "2026-11-04T00:00:00.000Z",
+  "categorie": "Exemple",
+  "declinaisons": [
+    {
+      "nom": "200 mm de large",
+      "dossier": "200 mm de large",
+      "source": "source/damier.svg",
+      "dimension": { "sens": "largeur", "mm": 200 },
+      "taille": { "largeur": 200, "hauteur": 120 },
+      "affectations": { "1": "chene", "2": "noyer" },
+      "reglages": {
+        "compensation": 0.08,
+        "rayon": 0.15,
+        "jeu": 2,
+        "largeurRangement": 160,
+        "marge": 10,
+        "toleranceFil": 5,
+        "ecartFilGroupe": 20,
+        "largeurFragile": 0.8
+      },
+      "essences": {
+        "chene": {
+          "id": "chene",
+          "nom": "Chêne",
+          "epaisseur": 0.6,
+          "vitesse": 1400,
+          "puissance": 70,
+          "passes": 2,
+          "teinte": "#d9b98b"
+        },
+        "noyer": {
+          "id": "noyer",
+          "nom": "Noyer",
+          "epaisseur": 0.9,
+          "vitesse": 2000,
+          "puissance": 80,
+          "passes": 2,
+          "teinte": "#6b4a2f"
+        }
+      },
+      "feuilles": [
+        { "groupes": [1], "essence": "chene", "fichier": "01 - groupe 1 - Chêne.lbrn2", "pieces": 3 },
+        { "groupes": [2], "essence": "noyer", "fichier": "02 - groupe 2 - Noyer.lbrn2", "pieces": 3 }
+      ],
+      "fichiers": ["01 - groupe 1 - Chêne.lbrn2", "02 - groupe 2 - Noyer.lbrn2"]
+    }
+  ]
+}

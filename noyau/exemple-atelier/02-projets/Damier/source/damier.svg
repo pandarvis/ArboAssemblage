@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="100mm" height="60mm" viewBox="0 0 100 60">
+  <g inkscape:label="1 chêne">
+    <path id="h1" d="M0 0 H34 V30 H0 Z" style="fill:#d9b98b"/>
+    <path id="h2" d="M34 0 H67 V30 H34 Z" style="fill:#d9b98b"/>
+    <path id="h3" d="M67 0 H100 V30 H67 Z" style="fill:#d9b98b"/>
+  </g>
+  <g inkscape:label="2 noyer">
+    <path id="b1" d="M0 30 H34 V60 H0 Z" style="fill:#6b4a2f"/>
+    <path id="b2" d="M34 30 H67 V60 H34 Z" style="fill:#6b4a2f"/>
+    <path id="b3" d="M67 30 H100 V60 H67 Z" style="fill:#6b4a2f"/>
+  </g>
+  <g inkscape:groupmode="layer" inkscape:label="sens du fil">
+    <text x="17" y="16" style="font-size:5px">↑</text>
+    <text x="50" y="16" style="font-size:5px">↑</text>
+    <text x="83" y="16" style="font-size:5px">↑</text>
+    <text x="17" y="46" style="font-size:5px">↑</text>
+    <text x="50" y="46" style="font-size:5px">↑</text>
+    <text x="83" y="46" style="font-size:5px">↑</text>
+  </g>
+</svg>

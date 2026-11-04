@@ -1,0 +1,97 @@
+:root {
+  --fond: #16171a;
+  --carte: #202227;
+  --bord: #32353c;
+  --texte: #ece7dd;
+  --doux: #9a958b;
+  --accent: #c9a27a;
+  --alerte: #e4603f;
+  --haut: env(safe-area-inset-top, 0px);
+  --bas: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 16px;
+}
+
+.ecran { position: fixed; inset: 0; display: none; overflow: auto; padding: calc(var(--haut) + 16px) 14px calc(var(--bas) + 16px); }
+.ecran.ouvert { display: block; }
+#motif.ouvert { padding: 0; overflow: hidden; }
+
+.entete h1 { margin: 0 0 4px; font-size: 22px; }
+.entete p { margin: 0 0 18px; font-size: 14px; }
+.doux { color: var(--doux); }
+.erreur { color: var(--alerte); font-size: 14px; padding: 12px; border: 1px solid var(--alerte); border-radius: 12px; }
+
+.bouton {
+  background: var(--carte); color: var(--texte); border: 1px solid var(--bord); border-radius: 12px;
+  padding: 10px 14px; font-size: 15px; font-family: inherit; cursor: pointer; line-height: 1.2;
+}
+.bouton:active { background: #2a2d34; }
+.bouton.large { width: 100%; text-align: center; }
+.bouton.rond { padding: 10px 13px; font-size: 17px; }
+.bouton.alerte { background: var(--alerte); border-color: var(--alerte); color: #fff; }
+.bouton.actif { background: var(--alerte); border-color: var(--alerte); color: #fff; }
+
+/* le choix du motif, et la liste des essences */
+.pile { display: flex; flex-direction: column; gap: 8px; }
+.ligne {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  padding: 13px 14px; border-radius: 14px; border: 1px solid var(--bord); background: var(--carte);
+  color: inherit; font: inherit; cursor: pointer;
+}
+.ligne:active { background: #2a2d34; }
+.ligne.active { border-color: var(--accent); }
+.ligne b { font-size: 15px; }
+.ligne small { display: block; color: var(--doux); font-size: 13px; margin-top: 2px; }
+.ligne .fin { margin-left: auto; color: var(--doux); font-size: 13px; text-align: right; white-space: nowrap; }
+.pastille { width: 18px; height: 18px; border-radius: 6px; border: 1px solid #0006; flex: none; }
+
+/* le motif */
+#plan { position: absolute; inset: 0; touch-action: none; }
+#plan svg { width: 100%; height: 100%; display: block; }
+path.piece { stroke: #0006; stroke-width: 0.3; stroke-linejoin: round; }
+path.piece.choisie { stroke: var(--texte); stroke-width: 1.4; }
+path.piece.eteinte { opacity: 0.15; }
+path.piece.refaire { stroke: var(--alerte); stroke-width: 1.6; fill: url(#hachures); }
+
+#barre {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  padding: calc(var(--haut) + 10px) 12px 10px;
+  background: linear-gradient(#16171aee, #16171a00);
+  display: flex; align-items: center; gap: 8px;
+}
+#titre { flex: 1; min-width: 0; }
+#titre b { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#titre small { display: block; color: var(--doux); font-size: 12px; }
+
+.panneau {
+  position: absolute; left: 10px; right: 10px; bottom: calc(var(--bas) + 10px); z-index: 3;
+  background: var(--carte); border: 1px solid var(--bord); border-radius: 18px; padding: 15px 16px;
+  transform: translateY(calc(100% + 30px)); transition: transform .22s ease;
+}
+.panneau.ouvert { transform: none; }
+.panneau h2 { margin: 0 0 6px; font-size: 18px; display: flex; align-items: center; gap: 9px; }
+#fiche-detail { font-size: 13px; line-height: 1.55; margin-bottom: 13px; }
+.actions { display: flex; gap: 8px; }
+.actions .bouton { flex: 1; text-align: center; }
+
+#refaire { margin: 20px 0; }
+#refaire h2 { font-size: 17px; margin: 0 0 6px; }
+#refaire p { font-size: 13px; line-height: 1.5; margin: 0 0 12px; }
+#refaire .bouton { margin-bottom: 8px; }
+
+.message {
+  position: fixed; left: 12px; right: 12px; bottom: calc(var(--bas) + 12px); z-index: 9;
+  margin: 0; padding: 13px 15px; border-radius: 14px; font-size: 14px; line-height: 1.45;
+  background: #2b2f36; border: 1px solid var(--bord); color: var(--texte);
+}
+.message[data-genre="erreur"] { background: #3a201b; border-color: var(--alerte); }

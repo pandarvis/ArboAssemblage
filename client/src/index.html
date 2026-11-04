@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Assemblage">
+<meta name="theme-color" content="#16171a">
+<title>ArboAssemblage</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icone.svg">
+<link rel="icon" href="icone.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- le choix du motif -->
+<section id="accueil" class="ecran ouvert">
+  <header class="entete">
+    <h1>Assemblage</h1>
+    <p class="doux">Choisis le motif que tu as sous la main.</p>
+  </header>
+  <div id="projets" class="pile"></div>
+  <p id="accueil-erreur" class="erreur" hidden></p>
+</section>
+
+<!-- le motif -->
+<section id="motif" class="ecran">
+  <div id="plan"></div>
+  <header id="barre">
+    <button class="bouton rond" id="retour" type="button" aria-label="Changer de motif">←</button>
+    <div id="titre">
+      <b id="titre-projet"></b>
+      <small id="titre-declinaison"></small>
+    </div>
+    <button class="bouton alerte" id="compteur" type="button" hidden></button>
+    <button class="bouton" id="ouvrir-essences" type="button">Essences</button>
+  </header>
+
+  <div id="fiche" class="panneau">
+    <h2><span class="pastille" id="fiche-pastille"></span><span id="fiche-essence"></span></h2>
+    <div id="fiche-detail" class="doux"></div>
+    <div class="actions">
+      <button class="bouton large" id="marquer" type="button">À redécouper</button>
+      <button class="bouton" id="fermer-fiche" type="button">Fermer</button>
+    </div>
+  </div>
+</section>
+
+<!-- les essences et ce qui est à refaire -->
+<section id="essences" class="ecran">
+  <header class="entete">
+    <h1>Les essences</h1>
+    <p class="doux">Touche une essence pour allumer ses pièces dans le motif.</p>
+  </header>
+  <div id="liste-essences" class="pile"></div>
+  <div id="refaire"></div>
+  <button class="bouton large" id="fermer-essences" type="button">Revenir au motif</button>
+</section>
+
+<p id="message" class="message" role="status" hidden></p>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
