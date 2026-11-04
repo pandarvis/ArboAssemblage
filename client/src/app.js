@@ -1,6 +1,7 @@
 // L'appli d'assemblage : on choisit un motif, on le regarde de près, on sait quelle essence est où,
 // et on marque les pièces à redécouper. Le serveur de l'atelier fait le reste.
 import { marques, recapitulatif } from './lib/marques.js';
+import { ranger } from './lib/rangement.js';
 import { cadrer, estUnAppui, geste, ancrer } from './lib/vue.js';
 
 const $ = s => document.querySelector(s);
@@ -58,15 +59,15 @@ async function accueil({ direct = false } = {}) {
       $('#projets').innerHTML = '<p class="doux">Aucun projet préparé pour l’instant.</p>';
       return;
     }
-    const vu = dernier();
-    const lignes = projets.flatMap(p => (p.declinaisons ?? []).map(d => ({ p, d })));
-    const rang = ({ p, d }) => (vu && p.dossier === vu.projet && d.nom === vu.declinaison ? 0 : 1);
-    lignes.sort((a, b) => rang(a) - rang(b));
-    $('#projets').innerHTML = lignes.map(({ p, d }) => `
-      <button class="ligne" data-projet="${attr(p.dossier)}" data-declinaison="${attr(d.nom)}">
-        <span><b>${texte(p.nom)}</b><small>${texte(d.nom)}${p.cree ? ` · préparé le ${date(p.cree)}` : ''}</small></span>
-        <span class="fin">${rang({ p, d }) === 0 ? 'en cours<br>' : ''}${d.pieces || '?'} pièces</span>
-      </button>`).join('');
+    // rangés comme dans l'atelier : par catégorie, le motif en cours en tête
+    const sections = ranger(projets, dernier());
+    $('#projets').innerHTML = sections.map(section => `
+      <h2 class="section">${texte(section.titre)}</h2>
+      ${section.lignes.map(l => `
+        <button class="ligne" data-projet="${attr(l.projet)}" data-declinaison="${attr(l.declinaison)}">
+          <span><b>${texte(l.nomProjet)}</b><small>${texte(l.declinaison)}${l.cree ? ` · préparé le ${date(l.cree)}` : ''}</small></span>
+          <span class="fin">${l.pieces || '?'} pièces</span>
+        </button>`).join('')}`).join('');
     for (const l of $('#projets').querySelectorAll('.ligne')) {
       l.addEventListener('click', () => ouvrir(l.dataset.projet, l.dataset.declinaison));
     }

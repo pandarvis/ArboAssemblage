@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { marques, recapitulatif, cleDe, memoire } from '../src/lib/marques.js';
 import { cadrer, zoomer, deplacer, versDessin, estUnAppui, viser, geste, ancrer, ZOOM_MIN, ZOOM_MAX } from '../src/lib/vue.js';
+import { ranger, SANS_CATEGORIE } from '../src/lib/rangement.js';
 
 const modele = {
   dossier: 'Damier', declinaison: '200 mm de large', taille: [200, 120],
@@ -125,4 +126,31 @@ test('le geste ne saute pas quand un doigt arrive ou s’en va', () => {
   const ancre2 = ancrer(zoomee, reste);
   assert.deepEqual(geste(ancre2, reste, origine), zoomee, 'lever un doigt ne déplace pas le motif');
   assert.deepEqual(geste(ancre2, [{ x: 100, y: 210 }], origine), { ...zoomee, x: zoomee.x + 10, y: zoomee.y + 10 });
+});
+
+test('les motifs se rangent par catégorie, le plus récent en tête', () => {
+  const projets = [
+    { nom: 'Pivert', dossier: 'Pivert', categorie: 'Animaux', cree: '2026-09-12', declinaisons: [{ nom: '300 mm', pieces: 44 }] },
+    { nom: 'Léane', dossier: 'Leane_full', categorie: 'Visage', cree: '2026-09-20', declinaisons: [{ nom: '610 mm', pieces: 409 }] },
+    { nom: 'Pomme', dossier: 'J01', categorie: 'inktober2026', cree: '2026-09-30', declinaisons: [{ nom: '410 mm', pieces: 262 }] },
+    { nom: 'Relique', dossier: 'J02', categorie: 'inktober2026', cree: '2026-10-01', declinaisons: [{ nom: '310 mm', pieces: 234 }] },
+    { nom: 'Panda', dossier: 'J07', cree: '2026-10-08', declinaisons: [{ nom: '250 mm', pieces: 269 }] },
+  ];
+
+  const sections = ranger(projets);
+  assert.deepEqual(sections.map(s => s.titre), ['inktober2026', 'Visage', 'Animaux', SANS_CATEGORIE],
+    'les catégories viennent par leur motif le plus récent, et ce qui n’est pas rangé ferme la marche');
+  assert.deepEqual(sections[0].lignes.map(l => l.nomProjet), ['Relique', 'Pomme'], 'et dans chacune, le plus récent d’abord');
+  assert.equal(sections[3].lignes[0].nomProjet, 'Panda');
+
+  // celui qu'on était en train d'assembler sort de sa catégorie et passe devant
+  const avecReprise = ranger(projets, { projet: 'J01', declinaison: '410 mm' });
+  assert.equal(avecReprise[0].titre, 'Reprendre');
+  assert.deepEqual(avecReprise[0].lignes.map(l => l.nomProjet), ['Pomme']);
+  assert.deepEqual(avecReprise[1].lignes.map(l => l.nomProjet), ['Relique'], 'il ne reste plus qu’elle dans sa catégorie');
+
+  // un projet à plusieurs tailles donne une ligne par taille
+  const deuxTailles = ranger([{ nom: 'Berceau', dossier: 'B', categorie: 'Divers', cree: '2026-10-23', declinaisons: [{ nom: '550 mm', pieces: 373 }, { nom: '300 mm', pieces: 373 }] }]);
+  assert.equal(deuxTailles[0].lignes.length, 2);
+  assert.deepEqual(ranger([]), [], 'un atelier vide ne fait pas de section');
 });

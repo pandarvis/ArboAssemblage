@@ -95,3 +95,12 @@ path.piece.refaire { stroke: var(--alerte); stroke-width: 1.6; fill: url(#hachur
   background: #2b2f36; border: 1px solid var(--bord); color: var(--texte);
 }
 .message[data-genre="erreur"] { background: #3a201b; border-color: var(--alerte); }
+
+/* les sections de l'accueil : une par catégorie, comme dans l'atelier */
+.section {
+  margin: 20px 0 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--accent);
+}
+.section:first-child { margin-top: 2px; }
+.pile { display: block; }
+.pile .ligne { margin-bottom: 8px; }
